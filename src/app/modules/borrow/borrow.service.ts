@@ -9,12 +9,29 @@ const createBorrowIntoDb = async (payload: BorrowRecord) => {
 const getOverdueBorrowFromDb = async () => {
   const fourteenDaysAgo = new Date();
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-  
+
   const result = await prisma.borrowRecord.findMany({
-    where: { borrowDate: { lt: fourteenDaysAgo } },
+    where: {
+      AND: [
+        { returnDate: { equals: null } },
+        { borrowDate: { lt: fourteenDaysAgo } },
+      ],
+    },
   });
 
   return result;
 };
 
-export const borrowServices = { createBorrowIntoDb, getOverdueBorrowFromDb };
+const returnBorrowBookIntoDb = async (id: string) => {
+  const result = await prisma.borrowRecord.update({
+    where: { borrowId: id },
+    data: { returnDate: new Date() },
+  });
+  return result;
+};
+
+export const borrowServices = {
+  createBorrowIntoDb,
+  getOverdueBorrowFromDb,
+  returnBorrowBookIntoDb,
+};
